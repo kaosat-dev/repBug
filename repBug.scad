@@ -9,9 +9,19 @@ include <MCAD/nuts_and_bolts.scad>
 xtra=0.1;
 tolerance = +0.0001;
 
-servo_width=20;
-servo_length=40;
+servo_width=12.5;
+servo_top_width=11.83;
+servo_length=23;
 servo_height=38;
+
+servo_mount_height=16;
+servo_mount_length=32;
+servo_mount_thickness=2.4;
+servo_mount_hole_dia=2;
+servo_mount_hole_dist=2.5;
+servo_mount_border=4.6;
+
+servo_mount_top_offset=servo_height-(servo_mount_height+servo_mount_thickness);
 
 MECHA_COLOR =[ 1.0, 0.46, 0.2 ];
 STRUCT_COLOR =[ 0.95, 0.95, 0.95];
@@ -21,12 +31,13 @@ ELEC_COLOR =[ 0.5, 0.5, 0.95];
 ///////////////////////////////
 // Example usage
 ////////////////////////////////
-//repBug();
+repBug();
 //leg();
 //rotate([0,180,0])servo_mount_thingy();
 
+//coxa();
 //rotate([0,180,0]) femur();
-tibia2([0,0,0],[-90,0,0]);
+//tibia2([0,0,0],[-90,0,0]);
 //rotate([0,-90,0])testsdf();
 
 
@@ -84,19 +95,67 @@ module leg()
 
 module coxa(pos=[0,0,0],rot=[0,0,0],thickness=3)
 {
+	border_size=servo_mount_border;
+	width =servo_top_width*2 + 2*border_size;
+	length=servo_length+ border_size*2;
+
+	height_offset= servo_mount_thickness+servo_mount_height;
+ 
+	pos_offset = servo_width/2;
+
+	servo_hole_offset=servo_length+servo_mount_hole_dist-servo_width/2;
+
+
+	femur_mount_hole_offset= -pos_offset-border_size;
+
 	translate(pos) rotate(rot) 
 	{
-	%translate([7,5,20.5]) cube([30,35,thickness],center=true)	;
+
+		difference()
+		{
+			translate([0,0,height_offset]) 
+			union()
+			{
+			linear_extrude(height=thickness)
+			{
+				
+				hull()
+				{
+					translate([-1,5]) square([servo_top_width+border_size-1,length],center=true);
+					translate([1,-1]) square([servo_top_width+border_size,length/4],center=true);
+				}
+				hull()
+				{
+					translate([1,-1]) square([servo_top_width+border_size,length/4],center=true);
+					translate([10,-1]) circle(r=5);
+					translate([17,-1]) circle(r=5);
+				}
+			}
+			if( thickness<5)
+			{
+				translate([servo_top_width,-0.5*(servo_mount_thickness+9.6),servo_mount_hole_dist])   rotate([0,90,90])cylinder(r=2.5,h=10, $fn=32);
+			}
+			}
+			translate([-servo_top_width/2,-pos_offset,height_offset-xtra/2])  cube([servo_top_width,servo_length,thickness+xtra]);
+			translate([servo_top_width/2,-servo_mount_thickness,height_offset-xtra/2])  cube([servo_top_width,servo_mount_thickness,thickness+xtra+5]);
+
+			//coxa servo mount holes
+			translate([0,-pos_offset-servo_mount_hole_dist,height_offset-xtra/2]) cylinder(r=servo_mount_hole_dia/2,h=thickness+xtra, $fn=16);
+			translate([0,servo_hole_offset,height_offset-xtra/2]) cylinder(r=servo_mount_hole_dia/2,h=thickness+xtra, $fn=16);
+
+			//femur servo mount hole
+			translate([servo_top_width,femur_mount_hole_offset,height_offset+servo_mount_hole_dist]) rotate([0,90,90])cylinder(r=servo_mount_hole_dia/2,h=length+xtra, $fn=16);		
+		}
+
 	HXT900();
-	HXT900([13,15,1] ,[90,0,0]);
+	HXT900([servo_width,16,1.5] ,[90,0,0]);
 	}
 }
 
-module femur(pos=[0,0,0],rot=[0,0,0],length=40, thickness=5, mount_dia = 20, mount_holes_dia=4)
+module femur(pos=[0,0,0],rot=[0,0,0],length=40, thickness=5, mount_dia = 10, mount_holes_dia=4, width=5.5)
 {
-	
 	translate(pos) rotate(rot) 
-	color(MECHA_COLOR)
+	//color(MECHA_COLOR)
 	difference()
 	{
 		union()
@@ -107,14 +166,55 @@ module femur(pos=[0,0,0],rot=[0,0,0],length=40, thickness=5, mount_dia = 20, mou
 				translate([length,0])  circle(r=mount_dia/2); 	
 			}
 
-			translate([length/2,length-mount_dia/1.22]) rotate([0,0,40])	arc(mount_dia/2, thickness, length, 80 );
+			translate([length/2,length-mount_dia/1.22-7]) rotate([0,0,40])	arc(width, thickness, length-5, 75 );
 		}
 		servo_mount_hole(total_height=thickness);
 		servo_mount_hole([length,0], total_height=thickness);
 		//cylinder(r=mount_holes_dia/2, h= thickness+xtra);
 		//translate([length,0])	cylinder(r=mount_holes_dia/2, h= thickness+xtra);
 	}
-	
+}
+
+module femur2(pos=[0,0,0],rot=[0,0,0],length=40, thickness=5, mount_dia = 10, mount_holes_dia=4, width=5)
+{
+	translate(pos) rotate(rot) 
+	//color(MECHA_COLOR)
+	difference()
+	{
+		union()
+		{
+			linear_extrude(height =thickness)
+			{	
+				hull()
+				{
+					circle(r=mount_dia/2); 	
+				}
+				hull()
+				{
+					translate([0,0]) circle(r=width/2+1); 	
+					translate([length/4,-3]) circle(r=width/2+1); 
+				}
+				hull()
+				{
+					translate([length/4,-3]) circle(r=width/2+1); 
+					translate([length/2,-4]) circle(r=width/2+1); 
+				}
+
+				/*hull()
+				{	
+					translate([length/2,-5]) circle(r=width/2+1); 
+					translate([length,0])  circle(r=mount_dia/2); 
+				}*/
+				//translate([length,0])  //circle(r=mount_dia/2); 	
+			}
+
+			%translate([length/2,length-mount_dia/1.22]) rotate([0,0,40])	arc(mount_dia/2, thickness, length, 70 );
+		}
+		servo_mount_hole(total_height=thickness);
+		servo_mount_hole([length,0], total_height=thickness);
+		//cylinder(r=mount_holes_dia/2, h= thickness+xtra);
+		//translate([length,0])	cylinder(r=mount_holes_dia/2, h= thickness+xtra);
+	}
 }
 
 module tibia(pos=[0,0,0],rot=[0,0,0],length=50,  thickness=5,servo_borders=5)
@@ -135,7 +235,7 @@ module tibia(pos=[0,0,0],rot=[0,0,0],length=50,  thickness=5,servo_borders=5)
 	translate(pos) rotate(rot) 
 	{
 		HXT900([0,0,-servo_height+12.2] ,[0,0,0]);
-		color(MECHA_COLOR)
+		//color(MECHA_COLOR)
 	
 	
 		difference()
@@ -176,8 +276,8 @@ module tibia2(pos=[0,0,0],rot=[0,0,0],length=54.4,  thickness=5,servo_borders=3)
 	rotate([90,0,0])
 	translate(pos) rotate(rot) 
 	{
-	%	HXT900([0,0,-servo_height+12.2] ,[0,0,0]);
-		color(MECHA_COLOR)
+		HXT900([0,0,-servo_height+12.2] ,[0,0,0]);
+		//color(MECHA_COLOR)
 	
 	
 		difference()
@@ -341,7 +441,7 @@ module body(pos=[0,0,0],width=80, length=100 , leg_angles=40, legs_dist=50,)
 }
 
 
-module servo_mount_hole(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height=2.97)
+module servo_mount_hole(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height=2.97,central_dia=3.15)
 {
 	$fs=0.2; // def 1, 0.2 is high res
 	$fa=3;//def 12, 3 is very nice
@@ -353,15 +453,18 @@ module servo_mount_hole(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height=
 	lower_hole_height=shaft_height;
 
 	upper_top_dia=4.8;//for larger head screw
-	central_dia=3.15;
+	cent_dia_adjustor=-0.1;
 
 	translate(pos)
 	rotate(rot)
 	union()
 	{
-		translate([0,0,-xtra/2]) cylinder(r= central_dia/2, h= total_height+xtra);
+		translate([0,0,-xtra/2]) cylinder(r= central_dia/2+cent_dia_adjustor, h= total_height+xtra);
 		translate([0,0,-xtra]) cylinder(r= lower_hole_max_dia/2, h= shaft_height+xtra);
-		translate([0,0,shaft_height+0.7]) cylinder(r= upper_top_dia/2, h= total_height-shaft_height+xtra); 
+		//translate([0,0,shaft_height+0.7]) cylinder(r= upper_top_dia/2, h= total_height-shaft_height+xtra); 	
+		translate([0,0,shaft_height+0.7]) cylinder(r1= upper_top_dia/2-0.2, r2=upper_top_dia/2, h= total_height-shaft_height+xtra); 
+
+
 	}
 }
 
@@ -404,18 +507,32 @@ module HXT900(pos=[0,0,0],rot=[0,0,0])
 
 	mount_height=16;
 	mount_length=32;
+	mount_thickness=2.4;
+	mount_hole_dia=2;
+	mount_hole_dist=2.5;
+
 	mount_offset=(mount_length-length)/2;
 	positional_offset=-width/2;
+
 	color(SERVO_COLOR)
 	translate(pos) rotate(rot) 
 	{
 		translate([0,positional_offset,0])
 		{
-		translate([-width/2,0,0])cube([width,length,height]);
-		translate([-width/2,-mount_offset,mount_height]) cube([width,mount_length,3]);
+		difference()
+		{
+			union()
+			{
+				translate([-width/2,0,0])cube([width,length,height]);
+				translate([-width/2,-mount_offset,mount_height]) cube([width,mount_length,mount_thickness]);
 
-		translate([0,width/2,height]) cylinder(r=width/2-0.5,h=4,$fn=16);
-		color(STRUCT_COLOR) translate([0,width/2,height+4]) cylinder(r=2,h=2, $fn=16);
+				translate([0,width/2,height]) cylinder(r=width/2-0.5,h=4,$fn=16);
+				color(STRUCT_COLOR) translate([0,width/2,height+4]) cylinder(r=2,h=2, $fn=16);
+			}
+			translate([0,-mount_hole_dist,mount_height-xtra/2]) cylinder(r=mount_hole_dia/2,h=mount_thickness+xtra, $fn=16);
+			translate([0,length+mount_hole_dist,mount_height-xtra/2]) cylinder(r=mount_hole_dia/2,h=mount_thickness+xtra, $fn=16);
+			
+		}
 		}
 	}
 }
