@@ -3,9 +3,17 @@
 // © 2012 by Mark "Ckaos" Moissette
 
 //use <parametric_involute_gear_v5.0.scad>
+use <MCAD/involute_gears.scad>
 include <MCAD/servos.scad>
 include <MCAD/nuts_and_bolts.scad>
 
+
+
+///////////////////////////////
+// USER PARAMETERS
+///////////////////////////////
+$fs=0.2; // def 1, 0.2 is high res
+$fa=3;//def 12, 3 is very nice
 xtra=0.1;
 tolerance = +0.0001;
 
@@ -31,16 +39,16 @@ ELEC_COLOR =[ 0.5, 0.5, 0.95];
 ///////////////////////////////
 // Example usage
 ////////////////////////////////
-repBug();
+//repBug();
 //leg();
 //rotate([0,180,0])servo_mount_thingy();
 
 //coxa();
-//rotate([0,180,0]) femur();
+rotate([0,180,0]) femur();
 //tibia2([0,0,0],[-90,0,0]);
 //rotate([0,-90,0])testsdf();
 
-
+//servo_mount_hole2();
 
 
 ///////////////////////////////
@@ -133,22 +141,22 @@ module coxa(pos=[0,0,0],rot=[0,0,0],thickness=3)
 			}
 			if( thickness<5)
 			{
-				translate([servo_top_width,-0.5*(servo_mount_thickness+9.6),servo_mount_hole_dist])   rotate([0,90,90])cylinder(r=2.5,h=10, $fn=32);
+				translate([servo_width,-0.5*(servo_mount_thickness+9.6),servo_mount_hole_dist])   rotate([0,90,90])cylinder(r=2.5,h=10, $fn=32);
 			}
 			}
 			translate([-servo_top_width/2,-pos_offset,height_offset-xtra/2])  cube([servo_top_width,servo_length,thickness+xtra]);
-			translate([servo_top_width/2,-servo_mount_thickness,height_offset-xtra/2])  cube([servo_top_width,servo_mount_thickness,thickness+xtra+5]);
+			translate([servo_top_width/2,-servo_mount_thickness,height_offset-xtra/2])  cube([servo_width,servo_mount_thickness,thickness+xtra+5]);
 
 			//coxa servo mount holes
 			translate([0,-pos_offset-servo_mount_hole_dist,height_offset-xtra/2]) cylinder(r=servo_mount_hole_dia/2,h=thickness+xtra, $fn=16);
 			translate([0,servo_hole_offset,height_offset-xtra/2]) cylinder(r=servo_mount_hole_dia/2,h=thickness+xtra, $fn=16);
 
 			//femur servo mount hole
-			translate([servo_top_width,femur_mount_hole_offset,height_offset+servo_mount_hole_dist]) rotate([0,90,90])cylinder(r=servo_mount_hole_dia/2,h=length+xtra, $fn=16);		
+			translate([servo_width,femur_mount_hole_offset,height_offset+servo_mount_hole_dist]) rotate([0,90,90])cylinder(r=servo_mount_hole_dia/2,h=length+xtra, $fn=16);		
 		}
 
-	HXT900();
-	HXT900([servo_width,16,1.5] ,[90,0,0]);
+	%HXT900();
+	%HXT900([servo_width,16,1.5] ,[90,0,0]);
 	}
 }
 
@@ -168,8 +176,8 @@ module femur(pos=[0,0,0],rot=[0,0,0],length=40, thickness=5, mount_dia = 10, mou
 
 			translate([length/2,length-mount_dia/1.22-7]) rotate([0,0,40])	arc(width, thickness, length-5, 75 );
 		}
-		servo_mount_hole(total_height=thickness);
-		servo_mount_hole([length,0], total_height=thickness);
+		servo_mount_hole2(total_height=thickness);
+		servo_mount_hole2([length,0], total_height=thickness);
 		//cylinder(r=mount_holes_dia/2, h= thickness+xtra);
 		//translate([length,0])	cylinder(r=mount_holes_dia/2, h= thickness+xtra);
 	}
@@ -463,8 +471,48 @@ module servo_mount_hole(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height=
 		translate([0,0,-xtra]) cylinder(r= lower_hole_max_dia/2, h= shaft_height+xtra);
 		//translate([0,0,shaft_height+0.7]) cylinder(r= upper_top_dia/2, h= total_height-shaft_height+xtra); 	
 		translate([0,0,shaft_height+0.7]) cylinder(r1= upper_top_dia/2-0.2, r2=upper_top_dia/2, h= total_height-shaft_height+xtra); 
+	}
+}
+
+module servo_mount_hole2(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height=2.90, central_dia=3.15)
+{
+	$fs=0.2; // def 1, 0.2 is high res
+	$fa=3;//def 12, 3 is very nice
+
+	od=7.55;
+
+	lower_hole_max_dia = 4.6;//where the servo actually connects
+	lower_hole_min_dia = 4.5;//where the servo actually connects
+	lower_hole_height=shaft_height;
+
+	upper_top_dia=4.8;//for larger head screw
+	cent_dia_adjustor=-0.1;
+
+	circular_pitch = ((lower_hole_min_dia+0.7)*14.9999)/2 ;
+	echo("circular_pitch", circular_pitch);
+	truc = (lower_hole_min_dia *2.54)/2;
+	echo("sqd",truc);
+	//32
+
+	servo_splines=20;
+
+	translate(pos)
+	rotate(rot)
+	union()
+	{
+		translate([0,0,-xtra/2]) cylinder(r= central_dia/2+cent_dia_adjustor, h= total_height+xtra);
+
+		//%translate([0,0,-xtra]) cylinder(r= lower_hole_min_dia/2, h= shaft_height+xtra);
+		//%translate([0,0,-xtra]) cylinder(r= lower_hole_max_dia/2, h= shaft_height+xtra);
+		//gear(diametral_pitch=truc, rim_thickness=shaft_height, hub_thickness=2.4,rim_width = 10, number_of_teeth=48, pressure_angle=20, bore_diameter=0,clearance=0, gear_thickness=shaft_height,involute_facets=1);
+
+		
+
+		translate([0,0,-xtra/2]) gear(circular_pitch=circular_pitch, rim_thickness=shaft_height, hub_thickness=2.4,rim_width = 10, number_of_teeth=servo_splines, pressure_angle=35, bore_diameter=0,clearance=-0.08, gear_thickness=shaft_height,involute_facets=1);
 
 
+		//translate([0,0,shaft_height+0.7]) cylinder(r= upper_top_dia/2, h= total_height-shaft_height+xtra); 	
+		//translate([0,0,shaft_height+0.7]) cylinder(r1= upper_top_dia/2-0.2, r2=upper_top_dia/2, h= total_height-shaft_height+xtra); 
 	}
 }
 
