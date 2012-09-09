@@ -2,12 +2,11 @@
 //Licensed under the Creative Commons -Attribution-NonCommercial-ShareAlike licence
 // © 2012 by Mark "Ckaos" Moissette
 
-//use <parametric_involute_gear_v5.0.scad>
+include <utils.scad>
+
 use <MCAD/involute_gears.scad>
 include <MCAD/servos.scad>
 include <MCAD/nuts_and_bolts.scad>
-
-
 
 ///////////////////////////////
 // USER PARAMETERS
@@ -31,29 +30,45 @@ servo_mount_border=4.6;
 
 servo_mount_top_offset=servo_height-(servo_mount_height+servo_mount_thickness);
 
-MECHA_COLOR =[ 1.0, 0.46, 0.2 ];
+MECHA_COLOR =[ 1.0, 0.46, 0.2 ];// [ 0.2, 0.2, 0.2 ]; //
 STRUCT_COLOR =[ 0.95, 0.95, 0.95];
-SERVO_COLOR =[ 0.25, 0.5, 0.95];
-
+SERVO_COLOR = [ 0.25, 0.5, 0.95];//[ 0.5, 0.5, 0.5 ];
 ELEC_COLOR =[ 0.5, 0.5, 0.95];
+
+//render settings
+VANITY = "vanity";
+INDUSTRIAL = "industrial";
+
+render_mode = INDUSTRIAL;
 ///////////////////////////////
 // Example usage
 ////////////////////////////////
-//repBug();
+repBug();
 //leg();
-//rotate([0,180,0])servo_mount_thingy();
-
-//coxa();
-rotate([0,180,0]) femur();
-//tibia2([0,0,0],[-90,0,0]);
+//mirror([1,0,0]) coxa();
+//rotate([0,180,0]) femur();
+//mirror([1,0,0]) tibia2([0,0,0],[-90,0,0]);
 //rotate([0,-90,0])testsdf();
 
 //servo_mount_hole2();
+//mount_hole_test();
+
+//leg_movement_protoyper();
 
 
 ///////////////////////////////
 // OpenSCAD SCRIPT
 ////////////////////////////////
+
+module mount_hole_test(thickness=5)
+{
+	rotate([0,180,0]) 
+	difference()
+	{
+		cylinder(r=5, h= thickness);
+		servo_mount_hole2(total_height=thickness);
+	}
+}
 
 module repBug(leg_angles=40, legs_dist=50, body_width=80)
 {
@@ -79,11 +94,11 @@ module repBug(leg_angles=40, legs_dist=50, body_width=80)
 
 	body([0,0,28]);
 
-	%body([0,0,-3]);
+	body([0,0,-3]);
 
 
 	//electronics
-	%raspi([0,0,0]);
+	raspi([0,0,0]);
 	%ada_servo_driver([30,0,13],[0,90,0]);
 
 
@@ -101,7 +116,7 @@ module leg()
 	tibia2([53,0,-5],[0,0,0]);
 }
 
-module coxa(pos=[0,0,0],rot=[0,0,0],thickness=3)
+module coxa(pos=[0,0,0],rot=[0,0,0],thickness=5)
 {
 	border_size=servo_mount_border;
 	width =servo_top_width*2 + 2*border_size;
@@ -118,7 +133,7 @@ module coxa(pos=[0,0,0],rot=[0,0,0],thickness=3)
 
 	translate(pos) rotate(rot) 
 	{
-
+		color(MECHA_COLOR)
 		difference()
 		{
 			translate([0,0,height_offset]) 
@@ -155,15 +170,26 @@ module coxa(pos=[0,0,0],rot=[0,0,0],thickness=3)
 			translate([servo_width,femur_mount_hole_offset,height_offset+servo_mount_hole_dist]) rotate([0,90,90])cylinder(r=servo_mount_hole_dia/2,h=length+xtra, $fn=16);		
 		}
 
-	%HXT900();
-	%HXT900([servo_width,16,1.5] ,[90,0,0]);
+	if (render_mode == VANITY)
+	{
+		HXT900();
+		HXT900([servo_width,16,1.5] ,[90,0,0]);
+	}
+	else
+	{
+		%HXT900();
+		%HXT900([servo_width,16,1.5] ,[90,0,0]);
+	}
+	
+	
+	
 	}
 }
 
 module femur(pos=[0,0,0],rot=[0,0,0],length=40, thickness=5, mount_dia = 10, mount_holes_dia=4, width=5.5)
 {
 	translate(pos) rotate(rot) 
-	//color(MECHA_COLOR)
+	color(MECHA_COLOR)
 	difference()
 	{
 		union()
@@ -186,7 +212,7 @@ module femur(pos=[0,0,0],rot=[0,0,0],length=40, thickness=5, mount_dia = 10, mou
 module femur2(pos=[0,0,0],rot=[0,0,0],length=40, thickness=5, mount_dia = 10, mount_holes_dia=4, width=5)
 {
 	translate(pos) rotate(rot) 
-	//color(MECHA_COLOR)
+	color(MECHA_COLOR)
 	difference()
 	{
 		union()
@@ -243,7 +269,7 @@ module tibia(pos=[0,0,0],rot=[0,0,0],length=50,  thickness=5,servo_borders=5)
 	translate(pos) rotate(rot) 
 	{
 		HXT900([0,0,-servo_height+12.2] ,[0,0,0]);
-		//color(MECHA_COLOR)
+		color(MECHA_COLOR)
 	
 	
 		difference()
@@ -281,45 +307,74 @@ module tibia2(pos=[0,0,0],rot=[0,0,0],length=54.4,  thickness=5,servo_borders=3)
 	end_offset=10;
 	
 	global_offset=3.2;
+
+
+	front_cut_corner_rad=1;
+	front_cut_center=5;
+	front_cut_corners=servo_length/2-front_cut_corner_rad;
+
 	rotate([90,0,0])
 	translate(pos) rotate(rot) 
 	{
-		HXT900([0,0,-servo_height+12.2] ,[0,0,0]);
-		//color(MECHA_COLOR)
-	
+		if (render_mode == VANITY)
+		{
+			HXT900([0,0,-servo_height+12.2] ,[0,0,0]);
+		}
+		else
+		{
+			%HXT900([0,0,-servo_height+12.2] ,[0,0,0]);
+		}
+		color(MECHA_COLOR)
 	
 		difference()
 		{
-			
-			
 			linear_extrude(height =thickness)
 			{
 				hull()
 				{
 					translate([global_offset,15]) circle(r=r1); 	
 					translate([global_offset,-5])circle(r=r1); 	
-					translate([end_offset,-length/2+end_offset*3])  circle(r=r1-1); 	
+					translate([end_offset,front_cut_center])  circle(r=r1-1); 	
 				}
-				
 				hull()
 				{
-					translate([end_offset,-length/2+end_offset*3])  circle(r=r1-1); 	
-					translate([0,-length+10])  circle(r=4); 	
-					
+					translate([end_offset,front_cut_center])  circle(r=r1-1); 	
+					translate([0,-length+10])  circle(r=4); 		
 				}
 				hull()
 				{
 					translate([0,-length+10])  circle(r=3); 	
 					translate([0,-length])  circle(r=2.8); 	
 				}
-				
-		
 			}
 			translate([0,5,thickness/2]) cube([servo_width,servo_length,thickness+xtra], center=true);
 
 			translate([0,5-servo_mount_offset,thickness/2+xtra/2]) cylinder(r= servo_hole_dia/2, h= thickness+xtra+10, center=true, $fn=32);
 			translate([0,5+servo_mount_offset,thickness/2+xtra/2]) cylinder(r= servo_hole_dia/2, h= thickness+xtra+10, center=true, $fn=32);
 			
+			//translate([12,3,-xtra/2]) cylinder(r=3, h= thickness+xtra);
+
+			translate([0,0,-xtra/2]) 
+			linear_extrude(height =thickness+xtra)
+			{
+				hull()
+				{
+				
+				translate([10,front_cut_center+front_cut_corners])circle(r=1.0); 
+				translate([13,front_cut_center]) circle(r=2); 	
+				translate([10,front_cut_center-front_cut_corners]) circle(r=1.0); 	
+				}	
+			}
+
+			translate([0,0,-xtra/2]) 
+			linear_extrude(height =thickness+xtra*2)
+			{
+				hull()
+				{
+				translate([5,-20]) circle(r=2); 	
+				translate([0.5,-40])circle(r=1); 
+				}	
+			}
 		}
 	}
 }
@@ -363,7 +418,6 @@ difference() {
 			translate([-50 * (((angle_2 - angle_1) <= 180)?1:0), 0, -50])
 			cube([100, 100, 100]);
 	}
-
 }
 
 
@@ -442,12 +496,122 @@ module body(pos=[0,0,0],width=80, length=100 , leg_angles=40, legs_dist=50,)
 	}
 	translate(pos)
 	
-	plate();
+	color(MECHA_COLOR) plate();
 	
 	
 
 }
 
+
+module leg_movement_protoyper(pos=[0,0,0],rot=[0,0,0], width=80, mount_dia=10, thickness=4, arm_width=5, arm_dist=20, mast_width=8.8, mast_length=18, mast_height=22)
+{
+
+	module holder_half()
+	{
+		hull()
+		{
+			translate([width/2,0]) circle(r=mount_dia/2); 
+		}
+		hull()
+		{
+			translate([width/2,0]) circle(r=arm_width/2); 
+			translate([0,arm_dist/2])  circle(r=arm_width/2);
+		}
+		hull()
+		{
+			translate([width/2, 0]) circle(r=arm_width/2); 
+			translate([0, -arm_dist/2])  circle(r=arm_width/2); 
+		}
+	}
+
+	module mast_attach()
+	{
+		mast_thickness=4;
+		bottom_thickness=5;
+		mast_bolt_dia=4;
+		owidth= mast_width + 2*mast_thickness;
+		
+		translate([0,0,0])
+		difference()
+		{
+			translate([-owidth/2,0,0])  rotate([0,90,0]) linear_extrude(height =owidth)
+			hull()
+			{
+				translate([-mast_height+mast_length/2, 0]) circle(r=mast_length/2); 
+				translate([0, 0]) square([0.001,mast_length],center=true);
+			}
+
+		
+			translate([-mast_width/2,-mast_length/2-xtra/2,mast_thickness]) cube([mast_width,mast_length+xtra,mast_height]);
+
+			rotate([0,90,0]) mount_hole([-mast_height/2,0,0],dia=mast_bolt_dia, length=owidth+xtra, cap_len=2, nut_len=2);
+
+			rotate([0,0,0]) mount_hole([0,0,bottom_thickness/2],dia=mast_bolt_dia, length=bottom_thickness+xtra, variant=CAP);
+		}
+	}
+
+	module mast_bottom_attach()
+	{
+		mast_thickness=4;
+		bottom_thickness=5;
+		mast_bolt_dia=4;
+		owidth= mast_width + 2*mast_thickness;
+
+		base_length=40;
+		
+		translate([0,0,0])
+		difference()
+		{
+			union()
+			{translate([-owidth/2,0,0])  rotate([0,90,0]) 
+				linear_extrude(height =owidth)
+			hull()
+			{
+				translate([-mast_height+mast_length/2, 0]) circle(r=mast_length/2); 
+				translate([0, 0]) square([0.001,mast_length],center=true);
+			}
+				
+				translate([0,0,bottom_thickness/2]) cube([base_length,mast_length,bottom_thickness], center=true);
+			}
+		
+			translate([-mast_width/2,-mast_length/2-xtra/2,mast_thickness]) cube([mast_width,mast_length+xtra,mast_height]);
+
+			rotate([0,90,0]) mount_hole([-mast_height/2,0,0],dia=mast_bolt_dia, length=owidth+xtra, cap_len=2, nut_len=2);
+	
+			rotate([0,0,0]) mount_hole([14,0,bottom_thickness/2],dia=mast_bolt_dia, length=bottom_thickness+xtra, variant=CAP);
+			rotate([0,0,0]) mount_hole([-14,0,bottom_thickness/2],dia=mast_bolt_dia, length=bottom_thickness+xtra, variant=CAP);
+		}
+	}
+
+	module leg_holder()
+	{
+		difference()
+		{
+		union()
+		{
+		linear_extrude(height =thickness)
+		{
+			hull()
+			{
+				translate([0,-arm_dist/2]) circle(r=mount_dia/2); 
+				translate([0,arm_dist/2]) circle(r=mount_dia/2); 
+			}
+			holder_half();
+			mirror([1,0,0]) holder_half();
+		}
+
+		
+		}
+		servo_mount_hole2([width/2,0,0],total_height=thickness);
+		servo_mount_hole2([-width/2,0,0],total_height=thickness);
+		rotate([0,180,0]) mount_hole([0,0,-thickness/2],dia=4, length=thickness+xtra, nut_len=2, variant=NUT);
+		}
+	}
+	//rotate([0,0,90])mirror([0,0,1])leg_holder();
+	//mirror([0,0,1])
+	//mast_attach();
+	mast_bottom_attach();
+}
 
 module servo_mount_hole(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height=2.97,central_dia=3.15)
 {
@@ -474,7 +638,7 @@ module servo_mount_hole(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height=
 	}
 }
 
-module servo_mount_hole2(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height=2.90, central_dia=3.15)
+module servo_mount_hole2(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height=2.50, central_dia=3.15)
 {
 	$fs=0.2; // def 1, 0.2 is high res
 	$fa=3;//def 12, 3 is very nice
@@ -488,7 +652,10 @@ module servo_mount_hole2(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height
 	upper_top_dia=4.8;//for larger head screw
 	cent_dia_adjustor=-0.1;
 
-	circular_pitch = ((lower_hole_min_dia+0.7)*14.9999)/2 ;
+	// 1.2 too big
+	//1.0 is just RIGHT , perhaps very very slightly too big
+	modifier=0.99;
+	circular_pitch = ((lower_hole_min_dia+modifier)*14.9999)/2 ;
 	echo("circular_pitch", circular_pitch);
 	truc = (lower_hole_min_dia *2.54)/2;
 	echo("sqd",truc);
@@ -503,12 +670,13 @@ module servo_mount_hole2(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height
 		translate([0,0,-xtra/2]) cylinder(r= central_dia/2+cent_dia_adjustor, h= total_height+xtra);
 
 		//%translate([0,0,-xtra]) cylinder(r= lower_hole_min_dia/2, h= shaft_height+xtra);
-		//%translate([0,0,-xtra]) cylinder(r= lower_hole_max_dia/2, h= shaft_height+xtra);
+		%translate([0,0,-xtra]) cylinder(r= lower_hole_max_dia/2, h= shaft_height+xtra);
 		//gear(diametral_pitch=truc, rim_thickness=shaft_height, hub_thickness=2.4,rim_width = 10, number_of_teeth=48, pressure_angle=20, bore_diameter=0,clearance=0, gear_thickness=shaft_height,involute_facets=1);
 
 		
-
-		translate([0,0,-xtra/2]) gear(circular_pitch=circular_pitch, rim_thickness=shaft_height, hub_thickness=2.4,rim_width = 10, number_of_teeth=servo_splines, pressure_angle=35, bore_diameter=0,clearance=-0.08, gear_thickness=shaft_height,involute_facets=1);
+		render()
+		{
+		translate([0,0,-xtra/2]) gear(circular_pitch=circular_pitch, rim_thickness=shaft_height, hub_thickness=2.4,rim_width = 10, number_of_teeth=servo_splines, pressure_angle=35, bore_diameter=0,clearance=-0.07, gear_thickness=shaft_height,involute_facets=1);}
 
 
 		//translate([0,0,shaft_height+0.7]) cylinder(r= upper_top_dia/2, h= total_height-shaft_height+xtra); 	
@@ -516,36 +684,7 @@ module servo_mount_hole2(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height
 	}
 }
 
-module servo_mount_thingy()
-{
-	$fs=0.2; // def 1, 0.2 is high res
-	$fa=3;//def 12, 3 is very nice
 
-	od=7.55;
-
-	total_height=4.4;
-	shaft_height=2.97;
-
-	lower_hole_max_dia = 4.6;//where the servo actually connects
-	lower_hole_min_dia = 4.5;//where the servo actually connects
-	lower_hole_height=shaft_height;
-
-	upper_top_dia=4.8;//for larger head screw
-	central_dia=3.15;
-
-	
-	difference()
-	{
-		//cylinder(r= od/2, h= total_height);
-		translate([-7.5,-5,0]) cube([15,10,total_height+0.7]);
-
-		translate([0,0,-xtra/2]) cylinder(r= central_dia/2, h= total_height+xtra);
-
-		translate([0,0,-xtra]) cylinder(r= lower_hole_max_dia/2, h= shaft_height+xtra);
-
-		translate([0,0,shaft_height+0.7]) cylinder(r= upper_top_dia/2, h= total_height-shaft_height+xtra); 
-	}
-}
 
 module HXT900(pos=[0,0,0],rot=[0,0,0])
 {
