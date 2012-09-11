@@ -30,16 +30,16 @@ servo_mount_border=4.6;
 
 servo_mount_top_offset=servo_height-(servo_mount_height+servo_mount_thickness);
 
-MECHA_COLOR =[ 1.0, 0.46, 0.2 ];// [ 0.2, 0.2, 0.2 ]; //
+MECHA_COLOR =[ 0.99, 0.85, 0.0 ];// [ 1.0, 0.46, 0.2 ];// [ 0.2, 0.2, 0.2 ]; //
 STRUCT_COLOR =[ 0.95, 0.95, 0.95];
 SERVO_COLOR = [ 0.25, 0.5, 0.95];//[ 0.5, 0.5, 0.5 ];
-ELEC_COLOR =[ 0.5, 0.5, 0.95];
+ELEC_COLOR =[ 0.5, 0.5, 0.6];
 
 //render settings
 VANITY = "vanity";
 INDUSTRIAL = "industrial";
 
-render_mode = INDUSTRIAL;
+render_mode = VANITY;
 ///////////////////////////////
 // Example usage
 ////////////////////////////////
