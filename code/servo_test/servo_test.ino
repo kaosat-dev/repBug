@@ -18,6 +18,10 @@ void setup()
   leftLeg.setup();
   rightLeg = Leg(10,9,8);
   
+  leftLeg.coxa.move(0, 100);
+  leftLeg.femur.move(90, 100);
+  leftLeg.tibia.move(0, 100);
+  
   Serial.begin(115200);
   Serial.println("start");   
   

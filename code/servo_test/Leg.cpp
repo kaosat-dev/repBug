@@ -31,10 +31,10 @@ void Segment::move(int pos)
 }
 
 
-void Segment::move(int pos, int spd)//pos in degrees speed in mm/S //edit, for now, just a delay
+void Segment::move(int pos, int spd=122)//pos in degrees speed in mm/S //edit, for now, just a delay
 {
-      writeMicroseconds
-      _servo.slowmove(pos, spd);
+      //writeMicroseconds
+      _servo.slowmove(pos+45, spd);
       /*if (pos>_pos)
       {
           for (int angle=_pos; angle<pos; angle++)
