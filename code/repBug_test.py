@@ -1,62 +1,58 @@
 import serial
 import time
 
-speed = 30
+speed = 200
+cmd_delay = 0.65;
 
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 
-for i in range(15):
-    ser.write("9 -45 %d\n" % speed) 
-    ser.write("10 0 %d\n" % speed) 
-    ser.write("11 0 %d\n"  % speed)
-    time.sleep(0.5)
-    ser.write("9 45 %d\n" % speed)
-    ser.write("10 45 %d\n" % speed)
-    ser.write("11 -10 %d\n" % speed)
-    time.sleep(0.5)
+for i in range(5):
+    """Left"""
+    ser.write("9 45 %d\n" % speed) 
+    ser.write("10 30 %d\n" % speed) 
+    ser.write("11 30 %d\n"  % speed)
+    time.sleep(cmd_delay)
+
+    """Left"""
     ser.write("9 45 %d\n" % speed)
     ser.write("10 0 %d\n" % speed)
-    ser.write("11 0 %d\n" % speed)
-    time.sleep(0.5)
-    ser.write("9 -45 %d\n" % speed)
+    ser.write("11 0 %d\n" % speed) 
+    time.sleep(cmd_delay)
+    
+    """Left"""
+    ser.write("9 -10 %d\n" % speed)
     ser.write("10 0 %d\n" % speed)
     ser.write("11 0 %d\n" % speed)
-    time.sleep(0.5)
+    #time.sleep(cmd_delay)
+    
+    
+    """Right"""
+    ser.write("12 -45 %d\n" % speed) 
+    ser.write("13 -30 %d\n" % speed) 
+    ser.write("14 -30 %d\n"  % speed)
+    time.sleep(cmd_delay)
 
-#    ser.write("9 45 50\n")
-#    ser.write("10 45 50\n")
-#    ser.write("11 45 50\n")
-#    time.sleep(1)
-#    #########################
-#    ser.write("9 90 50\n")
-#    ser.write("10 90 50\n")
-#    ser.write("11 90 50\n")
-#    time.sleep(1)
-#    
-#    ser.write("9 90 50\n")
-#    ser.write("10 0 50\n")
-#    ser.write("11 0 50\n")
-#    time.sleep(1)
-#    
-#    ser.write("9 0 50\n")
-#    ser.write("10 0 50\n")
-#    ser.write("11 0 50\n")
-#    time.sleep(1)
-#    
-#    ser.write("9 0 50\n")
-#    ser.write("10 90 50\n")
-#    ser.write("11 90 50\n")
-#    time.sleep(1)
-#    ########################
-#    
-#    ser.write("9 45 50\n")
-#    ser.write("10 45 50\n")
-#    ser.write("11 45 50\n")
-#    time.sleep(1)
-
-ser.write("9 0 50\n")
-ser.write("10 0 50\n")
-ser.write("11 0 50\n")
+    """Right"""
+    ser.write("12 -45 %d\n" % speed)
+    ser.write("13 0 %d\n" % speed)
+    ser.write("14 0 %d\n" % speed)
+    time.sleep(cmd_delay)
+    
+    """Right"""
+    ser.write("12 10 %d\n" % speed)
+    ser.write("13 0 %d\n" % speed)
+    ser.write("14 0 %d\n" % speed)
+   
+    
+time.sleep(cmd_delay)
+"""Left"""
+ser.write("9 0 %d\n" % speed)
+ser.write("10 0 %d\n" % speed)
+ser.write("11 0 %d\n" % speed)
+"""Right"""
+ser.write("12 0 %d\n" % speed)
+ser.write("13 0 %d\n" % speed)
+ser.write("14 0 %d\n" % speed)
 time.sleep(1)
 ser.close()
 

@@ -2,6 +2,7 @@
 #define Leg_h
 #include <VarSpeedServo.h> 
 //#include "WProgram.h"
+
 class Segment
 {
   public:
@@ -29,9 +30,6 @@ class Leg
     Segment coxa;
     Segment femur;
     Segment tibia;
-    
-
-    
 };
 
 #endif

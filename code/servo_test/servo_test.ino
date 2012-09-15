@@ -1,30 +1,47 @@
 #include <VarSpeedServo.h> 
 #include <EEPROM.h>
-#include "Leg.h"
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
 
+#include "Leg.h"
+#include "Leg2.h"
 
 
 char commandBuffer[128];
 int commandIndex=0 ;
 //72442ba3-058c-4cee-a060-5d7c644f1dbe
 
-Leg leftLeg= Leg(13,12,11);
+Leg leftLeg;
 Leg rightLeg;
- 
+
+Adafruit_PWMServoDriver servoDriver1 = Adafruit_PWMServoDriver();
+Leg2 leftLeg2= Leg2(servoDriver1, 0,1,2);
+Leg2 rightLeg2= Leg2(servoDriver1, 3,4,5);
+
+/*ISR(TIMER2_OVF_vect) 
+{
+   updateAll(); // Interrupt.
+}*/
+
 void setup() 
 { 
-
- // leftLeg = Leg(13,12,11);
-  leftLeg.setup();
-  rightLeg = Leg(10,9,8);
-  
-  leftLeg.coxa.move(0, 100);
-  leftLeg.femur.move(90, 100);
-  leftLeg.tibia.move(0, 100);
+  servoDriver1.begin();
+  servoDriver1.setPWMFreq(50); 
   
   Serial.begin(115200);
   Serial.println("start");   
+  leftLeg2.setup();
+  rightLeg2.setup();
   
+  /*leftLeg2.coxa.move(0,254);
+  leftLeg2.femur.move(0,254);
+  leftLeg2.tibia.move(0,254);
+  
+  rightLeg2.coxa.move(0,254);
+  rightLeg2.femur.move(0,254);
+  rightLeg2.tibia.move(0,254);*/
+  //attachInterrupt(0, updateAll, CHANGE);
+ // TIMSK2 = (0<<OCIE2A) | (1<<TOIE2);
 } 
  
 
@@ -90,9 +107,21 @@ void sub_array(char* data,int start,int end,char* result)
 int parse_int(char* data,int start,int end)
 {
   int result=0;
+  boolean neg=false;
+ 
+  if (data[start] == '-')
+  {
+    neg=true;
+    start++;
+  }
   for (int i=start;i<end;i++)
   {
       result=result*10+int(data[i])-48;
+  }
+  
+  if(neg == true)
+  {
+    result=result*-1;
   }
   return result;
 }
@@ -167,8 +196,8 @@ void  parseCommand(char* data, int size)
       {
         int mov = parse_int(data,markers[0]+1,markers[1]);
         int spd = parse_int(data,markers[1]+1,markers[2]);
-        leftLeg.coxa.move(mov, spd);
-        Serial.print("Left coxa moving by");
+        leftLeg2.coxa.move(mov, spd);
+        Serial.print("Left coxa moving to");
         Serial.print(mov); 
         Serial.print(" At speed (out of 255)");
         Serial.print(spd);
@@ -179,8 +208,8 @@ void  parseCommand(char* data, int size)
       {
         int mov = parse_int(data,markers[0]+1,markers[1]);
         int spd = parse_int(data,markers[1]+1,markers[2]);
-        leftLeg.femur.move(mov, spd);
-        Serial.print("Left femur moving by");
+        leftLeg2.femur.move(mov, spd);
+        Serial.print("Left femur moving to");
         Serial.print(mov); 
         Serial.print(" At speed (out of 255)");
         Serial.print(spd);
@@ -190,8 +219,31 @@ void  parseCommand(char* data, int size)
       {
         int mov = parse_int(data,markers[0]+1,markers[1]);
         int spd = parse_int(data,markers[1]+1,markers[2]);
-        leftLeg.tibia.move(mov, spd);
-        Serial.print("Left tibia moving by");
+        leftLeg2.tibia.move(mov,spd);
+        Serial.print("Left tibia moving to");
+        Serial.print(mov); 
+        Serial.print(" At speed (out of 255)");
+        Serial.print(spd);
+        break; 
+      }
+      case 12:
+      {
+        int mov = parse_int(data,markers[0]+1,markers[1]);
+        int spd = parse_int(data,markers[1]+1,markers[2]);
+        rightLeg2.coxa.move(mov,spd);
+        Serial.print("Right coxa moving to");
+        Serial.print(mov); 
+        Serial.print(" At speed (out of 255)");
+        Serial.print(spd);
+        
+        break; 
+      }
+      case 13:
+      {
+        int mov = parse_int(data,markers[0]+1,markers[1]);
+        int spd = parse_int(data,markers[1]+1,markers[2]);
+        rightLeg2.femur.move(mov,spd);
+        Serial.print("Right femur moving to");
         Serial.print(mov); 
         Serial.print(" At speed (out of 255)");
         Serial.print(spd);
@@ -200,11 +252,15 @@ void  parseCommand(char* data, int size)
       case 14:
       {
         int mov = parse_int(data,markers[0]+1,markers[1]);
-        rightLeg.coxa.move(mov);
-        Serial.print("Right coxa moving by");
+        int spd = parse_int(data,markers[1]+1,markers[2]);
+        rightLeg2.tibia.move(mov,spd);
+        Serial.print("Right tibia moving to");
         Serial.print(mov); 
+        Serial.print(" At speed (out of 255)");
+        Serial.print(spd);
         break; 
       }
+
 
       default:
        break;  
@@ -232,10 +288,85 @@ void loop()
     {
       commandBuffer[commandIndex]=c;
       commandIndex++;
-     
     }
   }
   
   
+  updateAll();
+  
   
 } 
+
+void updateAll()
+{
+  rightLeg2.coxa.update();
+  rightLeg2.femur.update();
+  rightLeg2.tibia.update();
+  
+  leftLeg2.coxa.update();
+  leftLeg2.femur.update();
+  leftLeg2.tibia.update();
+}
+
+/*#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+// called this way, it uses the default address 0x40
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+// you can also call it with a different address you want
+//Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
+
+// Depending on your servo make, the pulse width min and max may vary, you 
+// want these to be as small/large as possible without hitting the hard stop
+// for max range. You'll have to tweak them as necessary to match the servos you
+// have!
+#define SERVOMIN  150 // this is the 'minimum' pulse length count (out of 4096)
+#define SERVOMAX  650 // this is the 'maximum' pulse length count (out of 4096)
+
+// our servo # counter
+uint8_t servonum = 0;
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("16 channel Servo test!");
+
+  pwm.begin();
+  
+  pwm.setPWMFreq(50);  // Analog servos run at ~60 Hz updates
+}
+
+// you can use this function if you'd like to set the pulse length in seconds
+// e.g. setServoPulse(0, 0.001) is a ~1 millisecond pulse width. its not precise!
+void setServoPulse(uint8_t n, double pulse) {
+  double pulselength;
+  
+  pulselength = 1000000;   // 1,000,000 us per second
+  pulselength /= 60;   // 60 Hz
+  Serial.print(pulselength); Serial.println(" us per period"); 
+  pulselength /= 4096;  // 12 bits of resolution
+  Serial.print(pulselength); Serial.println(" us per bit"); 
+  pulse *= 1000;
+  pulse /= pulselength;
+  Serial.println(pulse);
+  pwm.setPWM(n, 0, pulse);
+}
+
+void loop() 
+{
+  // Drive each servo one at a time
+  Serial.println(servonum);
+  for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
+    pwm.setPWM(servonum, 0, pulselen);
+    delay(1);
+  }
+  //delay(1);
+  for (uint16_t pulselen = SERVOMAX; pulselen > SERVOMIN; pulselen--) {
+    pwm.setPWM(servonum, 0, pulselen);
+    delay(1);
+  }
+  //delay(1);
+
+  servonum ++;
+  if (servonum > 2) servonum = 0;
+  delay(2);
+}*/
