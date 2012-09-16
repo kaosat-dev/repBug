@@ -114,24 +114,22 @@ void Joint::move(int pos, int spd=254)//pos in degrees speed in mm/S //edit, for
 void Joint::update()
 {
     int diff = micros()-_last;
-    
     if(diff>= _delay && abs(_testPos-_targetPos)>2)
     {
+     
       float offset = (float)diff-(float)_delay;
       float angleOffset = abs((float)offset/_delay);
     if (_testPos<_targetPos)
-    {
-        //_pos+=1;   
+    { 
         _testPos += (1.0+angleOffset);
     }
     else if (_testPos>_targetPos)
     {
-        //_pos-=1;
         _testPos -= (1.0 +angleOffset);
     }
-      //Serial.print("Time since last update ");
-      //Serial.print(diff);
-     /* Serial.print(" Delay (us) ");
+     /* Serial.print("Time since last update ");
+      Serial.print(diff);
+      Serial.print(" Delay (us) ");
       Serial.print(_delay);
       Serial.print(" time offset (us) ");
       Serial.print(offset);
@@ -142,6 +140,7 @@ void Joint::update()
     _servoDriver.setPWM(_pin, 0, _testPos);
     _last=micros();
     }
+ 
 }
 
 

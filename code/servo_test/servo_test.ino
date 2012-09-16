@@ -5,41 +5,74 @@
 
 #include "Leg.h"
 #include "Leg2.h"
-
-
+#define ledPin 13
+#define period 130
 char commandBuffer[128];
 int commandIndex=0 ;
 //72442ba3-058c-4cee-a060-5d7c644f1dbe
 
-Leg leftLeg;
-Leg rightLeg;
+
+
+
+volatile int testpos = 200;
+
+void Timer2init() {
+
+    // Setup Timer2 overflow to fire every 8ms (125Hz)
+    //   period [sec] = (1 / f_clock [sec]) * prescale * (255-count)
+    //                  (1/16000000)  * 1024 * (255-130) = .008 sec
+    //0.000000062 * 1024 * (255-130)
+    //0.000064 *(255-period)
+    TCCR2B = 0x00;        // Disable Timer2 while we set it up
+
+    TCNT2  = period;         // Reset Timer Count  (255-130) = execute ev 125-th T/C clock
+    TIFR2  = 0x00;        // Timer2 INT Flag Reg: Clear Timer Overflow Flag
+    TIMSK2 = 0x01;        // Timer2 INT Reg: Timer2 Overflow Interrupt Enable
+    TCCR2A = 0x00;        // Timer2 Control Reg A: Wave Gen Mode normal
+    TCCR2B = 0x07;        // Timer2 Control Reg B: Timer Prescaler set to 1024
+}
+
+ISR(TIMER2_OVF_vect) {
+    //
+   
+    //static unsigned int led_state = 0; // LED state
+
+    //led_state = !led_state;         // toggles the LED state
+    //digitalWrite(ledPin, led_state);
+   // Serial.println("mlk");
+   // updateAll(); // Interrupt.
+
+    TCNT2 = period;     // reset timer ct to 130 out of 255
+    TIFR2 = 0x00;    // timer2 int flag reg: clear timer overflow flag
+};
 
 Adafruit_PWMServoDriver servoDriver1 = Adafruit_PWMServoDriver();
-Leg2 leftLeg2= Leg2(servoDriver1, 0,1,2);
-Leg2 rightLeg2= Leg2(servoDriver1, 3,4,5);
+Leg2 leftLeg= Leg2(servoDriver1, 0,1,2);
+Leg2 rightLeg= Leg2(servoDriver1, 3,4,5);
 
-/*ISR(TIMER2_OVF_vect) 
-{
-   updateAll(); // Interrupt.
-}*/
+Leg2 leftLeg2= Leg2(servoDriver1, 6,7,8);
+Leg2 rightLeg2= Leg2(servoDriver1, 9,10,11);
 
+Leg2 leftLeg3= Leg2(servoDriver1, 12,13,14);
+//Leg2 rightLeg3= Leg2(servoDriver1, 9,10,11);
 void setup() 
 { 
+  //Timer2init();
   servoDriver1.begin();
   servoDriver1.setPWMFreq(50); 
   
   Serial.begin(115200);
   Serial.println("start");   
-  leftLeg2.setup();
-  rightLeg2.setup();
-  
+ // leftLeg.setup();
+ // rightLeg.setup();
+
   /*leftLeg2.coxa.move(0,254);
-  leftLeg2.femur.move(0,254);
-  leftLeg2.tibia.move(0,254);
+  leftLeg.femur.move(0,254);
+  leftLeg.tibia.move(0,254);
   
-  rightLeg2.coxa.move(0,254);
-  rightLeg2.femur.move(0,254);
-  rightLeg2.tibia.move(0,254);*/
+  rightLeg.coxa.move(0,254);
+  rightLeg.femur.move(0,254);
+  rightLeg.tibia.move(0,254);*/
   //attachInterrupt(0, updateAll, CHANGE);
  // TIMSK2 = (0<<OCIE2A) | (1<<TOIE2);
 } 
@@ -196,19 +229,19 @@ void  parseCommand(char* data, int size)
       {
         int mov = parse_int(data,markers[0]+1,markers[1]);
         int spd = parse_int(data,markers[1]+1,markers[2]);
-        leftLeg2.coxa.move(mov, spd);
-        Serial.print("Left coxa moving to");
+        leftLeg.coxa.move(mov, spd);
+      /*  Serial.print("Left coxa moving to");
         Serial.print(mov); 
         Serial.print(" At speed (out of 255)");
         Serial.print(spd);
-        
+        */
         break; 
       }
       case 10:
       {
         int mov = parse_int(data,markers[0]+1,markers[1]);
         int spd = parse_int(data,markers[1]+1,markers[2]);
-        leftLeg2.femur.move(mov, spd);
+        leftLeg.femur.move(mov, spd);
         Serial.print("Left femur moving to");
         Serial.print(mov); 
         Serial.print(" At speed (out of 255)");
@@ -219,7 +252,7 @@ void  parseCommand(char* data, int size)
       {
         int mov = parse_int(data,markers[0]+1,markers[1]);
         int spd = parse_int(data,markers[1]+1,markers[2]);
-        leftLeg2.tibia.move(mov,spd);
+        leftLeg.tibia.move(mov,spd);
         Serial.print("Left tibia moving to");
         Serial.print(mov); 
         Serial.print(" At speed (out of 255)");
@@ -230,7 +263,7 @@ void  parseCommand(char* data, int size)
       {
         int mov = parse_int(data,markers[0]+1,markers[1]);
         int spd = parse_int(data,markers[1]+1,markers[2]);
-        rightLeg2.coxa.move(mov,spd);
+        rightLeg.coxa.move(mov,spd);
         Serial.print("Right coxa moving to");
         Serial.print(mov); 
         Serial.print(" At speed (out of 255)");
@@ -242,7 +275,7 @@ void  parseCommand(char* data, int size)
       {
         int mov = parse_int(data,markers[0]+1,markers[1]);
         int spd = parse_int(data,markers[1]+1,markers[2]);
-        rightLeg2.femur.move(mov,spd);
+        rightLeg.femur.move(mov,spd);
         Serial.print("Right femur moving to");
         Serial.print(mov); 
         Serial.print(" At speed (out of 255)");
@@ -253,11 +286,64 @@ void  parseCommand(char* data, int size)
       {
         int mov = parse_int(data,markers[0]+1,markers[1]);
         int spd = parse_int(data,markers[1]+1,markers[2]);
-        rightLeg2.tibia.move(mov,spd);
+        rightLeg.tibia.move(mov,spd);
         Serial.print("Right tibia moving to");
         Serial.print(mov); 
         Serial.print(" At speed (out of 255)");
         Serial.print(spd);
+        break; 
+      }
+      
+      case 15:
+      {
+        int mov = parse_int(data,markers[0]+1,markers[1]);
+        int spd = parse_int(data,markers[1]+1,markers[2]);
+        Serial.print("Moving all");
+        leftLeg.coxa.move(mov,spd);
+        leftLeg.femur.move(mov,spd);
+        leftLeg.tibia.move(mov,spd);
+        
+        rightLeg.coxa.move(mov,spd);
+        rightLeg.femur.move(mov,spd);
+        rightLeg.tibia.move(mov,spd);
+        
+       leftLeg2.coxa.move(mov,spd);
+        leftLeg2.femur.move(mov,spd);
+        leftLeg2.tibia.move(mov,spd);
+        
+        rightLeg2.coxa.move(mov,spd);
+        rightLeg2.femur.move(mov,spd);
+        rightLeg2.tibia.move(mov,spd);
+        
+         leftLeg3.coxa.move(mov,spd);
+        leftLeg3.femur.move(mov,spd);
+        leftLeg3.tibia.move(mov,spd);
+        break; 
+      }
+      case 16:
+      {
+        int mov = parse_int(data,markers[0]+1,markers[1]);
+        int spd = parse_int(data,markers[1]+1,markers[2]);
+        Serial.print("Moving all");
+        leftLeg.coxa.move(mov,spd);
+        leftLeg.femur.move(mov,spd);
+        leftLeg.tibia.move(mov,spd);
+        
+        rightLeg.coxa.move(mov,spd);
+        rightLeg.femur.move(mov,spd);
+        rightLeg.tibia.move(mov,spd);
+        
+       leftLeg2.coxa.move(mov,spd);
+        leftLeg2.femur.move(mov,spd);
+        leftLeg2.tibia.move(mov,spd);
+        
+        rightLeg2.coxa.move(mov,spd);
+        rightLeg2.femur.move(mov,spd);
+        rightLeg2.tibia.move(mov,spd);
+        
+         leftLeg3.coxa.move(mov,spd);
+        leftLeg3.femur.move(mov,spd);
+        leftLeg3.tibia.move(mov,spd);
         break; 
       }
 
@@ -299,13 +385,26 @@ void loop()
 
 void updateAll()
 {
+  rightLeg.coxa.update();
+  rightLeg.femur.update();
+  rightLeg.tibia.update();
+  
+  leftLeg.coxa.update();
+  leftLeg.femur.update();
+  leftLeg.tibia.update();
+  
   rightLeg2.coxa.update();
   rightLeg2.femur.update();
   rightLeg2.tibia.update();
-  
-  leftLeg2.coxa.update();
-  leftLeg2.femur.update();
-  leftLeg2.tibia.update();
+
+ leftLeg2.coxa.update();
+ leftLeg2.femur.update();
+ leftLeg2.tibia.update();
+ 
+ leftLeg3.coxa.update();
+ leftLeg3.femur.update();
+ leftLeg3.tibia.update();
+
 }
 
 /*#include <Wire.h>
