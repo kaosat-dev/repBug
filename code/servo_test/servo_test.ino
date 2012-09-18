@@ -6,7 +6,7 @@
 #include "Leg.h"
 #include "Leg2.h"
 #define ledPin 13
-#define period 130
+#define period 255
 char commandBuffer[128];
 int commandIndex=0 ;
 //72442ba3-058c-4cee-a060-5d7c644f1dbe
@@ -32,16 +32,9 @@ void Timer2init() {
     TCCR2B = 0x07;        // Timer2 Control Reg B: Timer Prescaler set to 1024
 }
 
-ISR(TIMER2_OVF_vect) {
-    //
-   
-    //static unsigned int led_state = 0; // LED state
-
-    //led_state = !led_state;         // toggles the LED state
-    //digitalWrite(ledPin, led_state);
-   // Serial.println("mlk");
-   // updateAll(); // Interrupt.
-
+ISR(TIMER2_OVF_vect) 
+{
+    ISRUpdateAll();
     TCNT2 = period;     // reset timer ct to 130 out of 255
     TIFR2 = 0x00;    // timer2 int flag reg: clear timer overflow flag
 };
@@ -57,7 +50,7 @@ Leg2 leftLeg3= Leg2(servoDriver1, 12,13,14);
 //Leg2 rightLeg3= Leg2(servoDriver1, 9,10,11);
 void setup() 
 { 
-  //Timer2init();
+  Timer2init();
   servoDriver1.begin();
   servoDriver1.setPWMFreq(50); 
   
@@ -378,8 +371,8 @@ void loop()
   }
   
   
-  updateAll();
-  
+  //updateAll();
+  applyAll();
   
 } 
 
@@ -407,65 +400,53 @@ void updateAll()
 
 }
 
-/*#include <Wire.h>
-#include <Adafruit_PWMServoDriver.h>
-
-// called this way, it uses the default address 0x40
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-// you can also call it with a different address you want
-//Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
-
-// Depending on your servo make, the pulse width min and max may vary, you 
-// want these to be as small/large as possible without hitting the hard stop
-// for max range. You'll have to tweak them as necessary to match the servos you
-// have!
-#define SERVOMIN  150 // this is the 'minimum' pulse length count (out of 4096)
-#define SERVOMAX  650 // this is the 'maximum' pulse length count (out of 4096)
-
-// our servo # counter
-uint8_t servonum = 0;
-
-void setup() {
-  Serial.begin(115200);
-  Serial.println("16 channel Servo test!");
-
-  pwm.begin();
-  
-  pwm.setPWMFreq(50);  // Analog servos run at ~60 Hz updates
-}
-
-// you can use this function if you'd like to set the pulse length in seconds
-// e.g. setServoPulse(0, 0.001) is a ~1 millisecond pulse width. its not precise!
-void setServoPulse(uint8_t n, double pulse) {
-  double pulselength;
-  
-  pulselength = 1000000;   // 1,000,000 us per second
-  pulselength /= 60;   // 60 Hz
-  Serial.print(pulselength); Serial.println(" us per period"); 
-  pulselength /= 4096;  // 12 bits of resolution
-  Serial.print(pulselength); Serial.println(" us per bit"); 
-  pulse *= 1000;
-  pulse /= pulselength;
-  Serial.println(pulse);
-  pwm.setPWM(n, 0, pulse);
-}
-
-void loop() 
+void ISRUpdateAll()
 {
-  // Drive each servo one at a time
-  Serial.println(servonum);
-  for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
-    pwm.setPWM(servonum, 0, pulselen);
-    delay(1);
-  }
-  //delay(1);
-  for (uint16_t pulselen = SERVOMAX; pulselen > SERVOMIN; pulselen--) {
-    pwm.setPWM(servonum, 0, pulselen);
-    delay(1);
-  }
-  //delay(1);
+  rightLeg.coxa.isrUpdate();
+  rightLeg.femur.isrUpdate();
+  rightLeg.tibia.isrUpdate();
+  
+  leftLeg.coxa.isrUpdate();
+  leftLeg.femur.isrUpdate();
+  leftLeg.tibia.isrUpdate();
+  
+  rightLeg2.coxa.isrUpdate();
+  rightLeg2.femur.isrUpdate();
+  rightLeg2.tibia.isrUpdate();
 
-  servonum ++;
-  if (servonum > 2) servonum = 0;
-  delay(2);
-}*/
+ leftLeg2.coxa.isrUpdate();
+ leftLeg2.femur.isrUpdate();
+ leftLeg2.tibia.isrUpdate();
+ 
+ leftLeg3.coxa.isrUpdate();
+ leftLeg3.femur.isrUpdate();
+ leftLeg3.tibia.isrUpdate();
+
+}
+
+
+void applyAll()
+{
+  rightLeg.coxa.apply();
+  rightLeg.femur.apply();
+  rightLeg.tibia.apply();
+  
+  leftLeg.coxa.apply();
+  leftLeg.femur.apply();
+  leftLeg.tibia.apply();
+  
+  rightLeg2.coxa.apply();
+  rightLeg2.femur.apply();
+  rightLeg2.tibia.apply();
+
+ leftLeg2.coxa.apply();
+ leftLeg2.femur.apply();
+ leftLeg2.tibia.apply();
+ 
+ leftLeg3.coxa.apply();
+ leftLeg3.femur.apply();
+ leftLeg3.tibia.apply();
+
+}
+
+

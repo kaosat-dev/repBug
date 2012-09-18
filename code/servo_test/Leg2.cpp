@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "Leg2.h"
+#include "helpers.h"
 
 Joint::Joint():_servoDriver()
 {
@@ -52,6 +53,7 @@ void Joint::move(int pos)
       _servoDriver.setPWM(_pin, 0, pos);
      _pos = pos; 
      _targetPos = pos; 
+     doMove=false;
   //  }
 }
 
@@ -114,20 +116,21 @@ void Joint::move(int pos, int spd=254)//pos in degrees speed in mm/S //edit, for
 void Joint::update()
 {
     int diff = micros()-_last;
-    if(diff>= _delay && abs(_testPos-_targetPos)>2)
+    if(diff>= _delay && abs(_testPos-_targetPos)>1)
     {
-     
+       
       float offset = (float)diff-(float)_delay;
       float angleOffset = abs((float)offset/_delay);
+      angleOffset = 1.0 + angleOffset;
     if (_testPos<_targetPos)
     { 
-        _testPos += (1.0+angleOffset);
+        _testPos += limit(angleOffset,angleOffset, _targetPos-_testPos);
     }
     else if (_testPos>_targetPos)
     {
-        _testPos -= (1.0 +angleOffset);
+        _testPos -= limit(angleOffset, angleOffset, _testPos-_targetPos);
     }
-     /* Serial.print("Time since last update ");
+    /*  Serial.print("Time since last update ");
       Serial.print(diff);
       Serial.print(" Delay (us) ");
       Serial.print(_delay);
@@ -137,13 +140,45 @@ void Joint::update()
       Serial.print(angleOffset);
       Serial.print(" new pos");
        Serial.println(_testPos);*/
-    _servoDriver.setPWM(_pin, 0, _testPos);
-    _last=micros();
+      _servoDriver.setPWM(_pin, 0, _testPos);
+      _last=micros();
+    }
+ 
+}
+
+void Joint::isrUpdate()
+{
+    int diff = micros()-_last;
+    if(diff>= _delay && abs(_testPos-_targetPos)>1)
+    {
+       
+      float offset = (float)diff-(float)_delay;
+      float angleOffset = abs((float)offset/_delay);
+      angleOffset = 1.0 + angleOffset;
+    if (_testPos<_targetPos)
+    { 
+        _testPos += limit(angleOffset,angleOffset, _targetPos-_testPos);
+    }
+    else if (_testPos>_targetPos)
+    {
+        _testPos -= limit(angleOffset, angleOffset, _testPos-_targetPos);
+    }
+  
+       doMove=true;
     }
  
 }
 
 
+void Joint::apply()
+{
+   if(doMove)
+   {
+      _servoDriver.setPWM(_pin, 0, _testPos);
+      doMove=false;
+     _last=micros();
+   }
+}
 
 Leg2::Leg2(Adafruit_PWMServoDriver &driver , int coxaPin, int femurPin, int tibiaPin):_servoDriver(driver)
 {

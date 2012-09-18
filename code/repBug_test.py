@@ -2,7 +2,7 @@ import serial
 import time
 
 speed = 200
-cmd_delay = 0.65;
+cmd_delay = 0.75;
 
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 

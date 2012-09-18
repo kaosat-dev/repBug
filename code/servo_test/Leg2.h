@@ -16,6 +16,8 @@ EMPIRIC servo min /max: 150 /650 (400 is better for max)
 #define SERVO_MIN 500//450
 #define SERVO_MAX 2450
 
+
+
 class Joint
 {
   public:
@@ -25,18 +27,21 @@ class Joint
     void move(int pos);
     void move(int pos, int speed);
     void update();
+    void apply();
+    void isrUpdate();
     int _pin;
     
   private:
     Adafruit_PWMServoDriver _servoDriver;
     int _pos;
-    float _testPos;
+    volatile float _testPos;
     int _servoMin;
     int _servoMax;
     
     int _targetPos;
     int _delay;
-    int _last;
+    volatile int _last;
+    volatile boolean doMove;
 };
 
 class Leg2
