@@ -2,17 +2,17 @@ RepBug , a 3d printable , mini hexapod !
 ========================================
 
 Overall design (far from final)
-![alt text](https://github.com/kaosat-dev/repBug/blob/master/repBug_0.1.jpg "Openscad View of repBug")
+![alt text](https://github.com/kaosat-dev/repBug/blob/master/repBug_0.1.jpg)
 
 
-Some features:
+**Some features:**
 
 - open source design & code
 - parametric (modelled in openscad)
 - relatively cheap (<200 euros, all included, hopefully)
 - showcase the advantages of 3d printing over traditional CNC methods 
 
-Some more details :
+**Some more details :**
 
 - muscle: HXT900 micro servos ->9 grams each (X18 for the legs, some more for head etc perhaps)
 - brain : RaspberryPi or BeagleBone -> 30 g (this might change, as initial experimentation will be done on Arduino)
