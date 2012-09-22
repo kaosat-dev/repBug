@@ -50,7 +50,7 @@ Leg2 leftLeg3= Leg2(servoDriver1, 12,13,14);
 //Leg2 rightLeg3= Leg2(servoDriver1, 9,10,11);
 void setup() 
 { 
-  Timer2init();
+ // Timer2init();
   servoDriver1.begin();
   servoDriver1.setPWMFreq(50); 
   
@@ -371,7 +371,7 @@ void loop()
   }
   
   
-  //updateAll();
+  updateAll();
   applyAll();
   
 } 

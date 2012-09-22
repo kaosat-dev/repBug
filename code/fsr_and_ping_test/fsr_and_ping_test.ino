@@ -49,6 +49,11 @@ void initTimer()
     //timercounts = 15999999
     //DUH : max value of OCR1A (or any 16 bit timer is 65535..
     //With an 8 bit timer we can go lower, but loose precision : 255 to overflow ie 255*0.062 us = 15.81 us (min time)
+    //250+1=x/0.062us
+    //251=x/0.062us
+    //251*0.062us=x
+    
+    //2ms= 32257
 }
 
 ISR(TIMER1_COMPA_vect)
