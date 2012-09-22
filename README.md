@@ -2,7 +2,7 @@ RepBug , a 3d printable , mini hexapod !
 ========================================
 
 Overall design (far from final)
-![alt text](/repBug_0.1.jpg "Openscad View of repBug")
+![alt text](https://github.com/kaosat-dev/repBug/blob/master/repBug_0.1.jpg "Openscad View of repBug")
 
 
 Some features:
