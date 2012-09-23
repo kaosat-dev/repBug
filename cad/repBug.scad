@@ -3,6 +3,7 @@
 // © 2012 by Mark "Ckaos" Moissette
 
 include <utils.scad>
+include <configuration.scad>
 
 use <MCAD/involute_gears.scad>
 include <MCAD/servos.scad>
@@ -13,33 +14,9 @@ include <MCAD/nuts_and_bolts.scad>
 ///////////////////////////////
 $fs=0.2; // def 1, 0.2 is high res
 $fa=3;//def 12, 3 is very nice
-xtra=0.1;
-tolerance = +0.0001;
-
-servo_width=12.5;
-servo_top_width=11.83;
-servo_length=23;
-servo_height=38;
-
-servo_mount_height=16;
-servo_mount_length=32;
-servo_mount_thickness=2.4;
-servo_mount_hole_dia=2;
-servo_mount_hole_dist=2.5;
-servo_mount_border=4.6;
-
-servo_mount_top_offset=servo_height-(servo_mount_height+servo_mount_thickness);
-
-MECHA_COLOR =[ 0.99, 0.85, 0.0 ];// [ 1.0, 0.46, 0.2 ];// [ 0.2, 0.2, 0.2 ]; //
-STRUCT_COLOR =[ 0.95, 0.95, 0.95];
-SERVO_COLOR = [ 0.25, 0.5, 0.95];//[ 0.5, 0.5, 0.5 ];
-ELEC_COLOR =[ 0.5, 0.5, 0.6];
-
-//render settings
-VANITY = "vanity";
-INDUSTRIAL = "industrial";
 
 render_mode = VANITY;
+
 ///////////////////////////////
 // Example usage
 ////////////////////////////////
@@ -54,7 +31,7 @@ repBug();
 //mount_hole_test();
 
 //leg_movement_protoyper();
-
+//servo_back_mod();
 
 ///////////////////////////////
 // OpenSCAD SCRIPT
@@ -70,7 +47,7 @@ module mount_hole_test(thickness=5)
 	}
 }
 
-module repBug(leg_angles=40, legs_dist=50, body_width=80)
+module repBug(leg_angles=40, legs_dist=52, body_width=95)
 {
 	module leg_test()
 	{
@@ -94,7 +71,7 @@ module repBug(leg_angles=40, legs_dist=50, body_width=80)
 
 	body([0,0,28]);
 
-	body([0,0,-3]);
+	body([0,0,-7]);
 
 
 	//electronics
@@ -109,11 +86,15 @@ module repBug(leg_angles=40, legs_dist=50, body_width=80)
 module leg()
 {
 
-	fem_length=40;
+	fem_length=45;
 
 	coxa([0,0,0],[0,0,0]);
+
 	femur([13,-10,0],[90,0,0],length=fem_length);
-	tibia2([53,0,-5],[0,0,0]);
+	// if doubled
+	femur([13,24,0],[90,0,0],length=fem_length);
+
+	tibia2([13+fem_length,0,-5],[0,0,0]);
 }
 
 module coxa(pos=[0,0,0],rot=[0,0,0],thickness=5)
@@ -423,8 +404,8 @@ difference() {
 
 module body(pos=[0,0,0],width=80, length=100 , leg_angles=40, legs_dist=50,)
 {
-	servo_mount_dia=6;
-	mount_dia = 25;
+	servo_mount_dia=4.6;
+	mount_dia = 15;
 	thickness=3;
 	mot_pos = [-15,5];
 
@@ -684,9 +665,78 @@ module servo_mount_hole2(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height
 	}
 }
 
+module servo_back_mod(pos=[0,0,0],rot=[0,0,0])
+{
+	width=12.35;
+	length=23;
+	height=5.5;
+	
+	bolts_dia=0.9;
+	axis_dia=4;
+
+	side_thickness=1;
+	front_back_thickness=0.85;
+
+	inner_width=width-2*side_thickness;
+	inner_length=length-2*front_back_thickness;
+	inner_height=4.34;
+
+	
+	bolts_x_pos=inner_width/2-bolts_dia/4;
+	bolts_y_pos=inner_length/2-bolts_dia/4;
+
+	lng_off=length-inner_length;
+
+	mount_bolt_cap_height=0.5;
+	mount_bolt_cap_dia=1.9;
+	mount_columns_diaxtra=0.25;
+	mount_columns_height=4.2;
+
+	module _body_box()
+	{
+		difference()
+		{
+			translate([-width/2,0,0])cube([width,length,height]);
+			translate([-inner_width/2,lng_off/2,-xtra])cube([inner_width,inner_length,inner_height+xtra]);
+		}
+	}	
+
+	translate(pos) rotate(rot) 
+	{
+		difference()
+		{
+			union()
+			{
+				_body_box();
+
+				translate([0,width/2,height]) cylinder(r=width/2,h=3.5);
+				translate([0,width/2,height+3.5]) cylinder(r1=width/2, r2=width/2-0.2,h=0.5);
+
+				translate([0,width/2,height]) cylinder(r=axis_dia/2,h=7);
+				render()
+				{
+				for (i =[-1 , 1]) for (j = [-1 , 1] )
+				translate([bolts_x_pos*i,bolts_y_pos*j+length/2,height-mount_columns_height]) cylinder(r=bolts_dia/2+mount_columns_diaxtra,h=mount_columns_height);
+				}
+			}
+			render()
+			{
+			for (i =[-1 , 1]) for (j = [-1 , 1] )
+			translate([bolts_x_pos*i,bolts_y_pos*j+length/2,0]) cylinder(r=bolts_dia/2,h=height+xtra, $fn=16);
+
+			for (i =[-1 , 1]) for (j = [-1 , 1] )
+			translate([bolts_x_pos*i,bolts_y_pos*j+length/2,height-mount_bolt_cap_height]) cylinder(r=mount_bolt_cap_dia/2,h=mount_bolt_cap_height, $fn=16);
+			
+			translate([0,width/2,height-2]) cylinder(r=width/2-0.8,h=4);
+			//translate([0,width/2,0]) cylinder(r=axis_dia/2,h=4+height+xtra);
+			}
+		}
+	}	
+
+}
 
 
-module HXT900(pos=[0,0,0],rot=[0,0,0])
+module HXT900(pos=[0,0,0],rot=[0,0,0], back_mod=true)
 {
 	width=12.5;
 	length=23;
@@ -701,6 +751,8 @@ module HXT900(pos=[0,0,0],rot=[0,0,0])
 	mount_offset=(mount_length-length)/2;
 	positional_offset=-width/2;
 
+	bottom_height=5.5;
+
 	color(SERVO_COLOR)
 	translate(pos) rotate(rot) 
 	{
@@ -710,11 +762,22 @@ module HXT900(pos=[0,0,0],rot=[0,0,0])
 		{
 			union()
 			{
-				translate([-width/2,0,0])cube([width,length,height]);
+				//translate([-width/2,0,0])cube([width,length,height]);
 				translate([-width/2,-mount_offset,mount_height]) cube([width,mount_length,mount_thickness]);
 
 				translate([0,width/2,height]) cylinder(r=width/2-0.5,h=4,$fn=16);
 				color(STRUCT_COLOR) translate([0,width/2,height+4]) cylinder(r=2,h=2, $fn=16);
+
+				if(back_mod)
+				{
+					//main body
+					translate([-width/2,0,bottom_height])cube([width,length,height-bottom_height]);
+					color(STRUCT_COLOR) servo_back_mod([0,0,bottom_height],[0,180,0]);
+				}
+				else
+				{
+					translate([-width/2,0,0])cube([width,length,height]);
+				}
 			}
 			translate([0,-mount_hole_dist,mount_height-xtra/2]) cylinder(r=mount_hole_dia/2,h=mount_thickness+xtra, $fn=16);
 			translate([0,length+mount_hole_dist,mount_height-xtra/2]) cylinder(r=mount_hole_dia/2,h=mount_thickness+xtra, $fn=16);
