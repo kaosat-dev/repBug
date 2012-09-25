@@ -20,7 +20,7 @@ render_mode = VANITY;
 ///////////////////////////////
 // Example usage
 ////////////////////////////////
-repBug();
+//repBug();
 //leg();
 //mirror([1,0,0]) coxa();
 //rotate([0,180,0]) femur();
@@ -31,8 +31,9 @@ repBug();
 //mount_hole_test();
 
 //leg_movement_protoyper();
-//servo_back_mod();
-
+//%servo_back_mod(part=TOP);
+//rotate([0,180,0]) servo_back_mod();
+servo_back_mod(part=TOP);
 ///////////////////////////////
 // OpenSCAD SCRIPT
 ////////////////////////////////
@@ -43,11 +44,11 @@ module mount_hole_test(thickness=5)
 	difference()
 	{
 		cylinder(r=5, h= thickness);
-		servo_mount_hole2(total_height=thickness);
+		servo_mount_hole3(total_height=thickness);
 	}
 }
 
-module repBug(leg_angles=40, legs_dist=52, body_width=95)
+module repBug(leg_angles=40, legs_dist=52, body_width=100)
 {
 	module leg_test()
 	{
@@ -167,7 +168,7 @@ module coxa(pos=[0,0,0],rot=[0,0,0],thickness=5)
 	}
 }
 
-module femur(pos=[0,0,0],rot=[0,0,0],length=40, thickness=5, mount_dia = 10, mount_holes_dia=4, width=5.5)
+module femur(pos=[0,0,0],rot=[0,0,0],length=45, thickness=5, mount_dia = 10, mount_holes_dia=4, width=5.5)
 {
 	translate(pos) rotate(rot) 
 	color(MECHA_COLOR)
@@ -183,8 +184,8 @@ module femur(pos=[0,0,0],rot=[0,0,0],length=40, thickness=5, mount_dia = 10, mou
 
 			translate([length/2,length-mount_dia/1.22-7]) rotate([0,0,40])	arc(width, thickness, length-5, 75 );
 		}
-		servo_mount_hole2(total_height=thickness);
-		servo_mount_hole2([length,0], total_height=thickness);
+		servo_mount_hole3(total_height=thickness);
+		servo_mount_hole3([length,0], total_height=thickness);
 		//cylinder(r=mount_holes_dia/2, h= thickness+xtra);
 		//translate([length,0])	cylinder(r=mount_holes_dia/2, h= thickness+xtra);
 	}
@@ -665,7 +666,84 @@ module servo_mount_hole2(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height
 	}
 }
 
-module servo_back_mod(pos=[0,0,0],rot=[0,0,0])
+module servo_mount_hole3(pos=[0,0,0],rot=[0,0,0], total_height=4.4, shaft_height=2.50, central_dia=3.15)
+{
+	$fs=0.2; // def 1, 0.2 is high res
+	$fa=3;//def 12, 3 is very nice
+
+	od=7.55;
+
+	lower_hole_max_dia = 4.6;//where the servo actually connects
+	lower_hole_min_dia = 4.5;//where the servo actually connects
+	lower_hole_height=shaft_height;
+
+	upper_top_dia=4.8;//for larger head screw
+	cent_dia_adjustor=-0.1;
+
+	// 1.2 too big
+	//1.0 is just RIGHT , perhaps very very slightly too big
+	modifier=0.99;
+	circular_pitch = ((lower_hole_min_dia+modifier)*14.9999)/2 ;
+	echo("circular_pitch", circular_pitch);
+	truc = (lower_hole_min_dia *2.54)/2;
+	echo("sqd",truc);
+	//32
+
+	servo_splines=20;
+
+
+	module _tooth(pos=[0,0,0], rot=[0,0,0], height=shaft_height,teeth_length=lower_hole_max_dia/2+0.2)
+	{
+		rotate(rot)
+		translate(pos)
+		linear_extrude(height =height)
+		{
+			hull()
+			{
+					translate([0,teeth_length]) circle(r=0.01);
+					circle(r=0.52);		
+			}
+		}
+	}
+
+	module _teeth(pos=[0,0,0], rot=[0,0,0])
+	{
+		rotate(rot)
+		translate(pos)
+			union()
+				{
+					for(i= [0:servo_splines])
+					_tooth([0,0,0],[0,0,i*(360/servo_splines)]);	
+				}
+	}
+
+
+	
+	translate(pos)
+	rotate(rot)
+	union()
+	{
+		translate([0,0,-xtra/2]) cylinder(r= central_dia/2+cent_dia_adjustor, h= total_height+xtra);
+
+		%translate([0,0,-xtra]) cylinder(r= lower_hole_max_dia/2, h= shaft_height+xtra);
+		//%translate([0,0,-xtra]) cylinder(r= lower_hole_min_dia/2, h= shaft_height+xtra);
+		//gear(diametral_pitch=truc, rim_thickness=shaft_height, hub_thickness=2.4,rim_width = 10, number_of_teeth=48, pressure_angle=20, bore_diameter=0,clearance=0, gear_thickness=shaft_height,involute_facets=1);
+
+		
+		//render()_teeth([0,0,-xtra/2]);
+		render()
+		{
+
+		//_teeth([0,0,-xtra/2]);
+		translate([0,0,-xtra/2]) gear(circular_pitch=circular_pitch, rim_thickness=shaft_height, hub_thickness=2.4,rim_width = 10, number_of_teeth=servo_splines, pressure_angle=30, bore_diameter=0,clearance=-0.00, gear_thickness=shaft_height,involute_facets=1);
+		}
+
+		}
+	
+}
+
+
+module servo_back_mod(pos=[0,0,0],rot=[0,0,0], part=BODY)
 {
 	width=12.35;
 	length=23;
@@ -680,6 +758,7 @@ module servo_back_mod(pos=[0,0,0],rot=[0,0,0])
 	inner_width=width-2*side_thickness;
 	inner_length=length-2*front_back_thickness;
 	inner_height=4.34;
+	top_thickess= height - inner_height;
 
 	
 	bolts_x_pos=inner_width/2-bolts_dia/4;
@@ -690,7 +769,12 @@ module servo_back_mod(pos=[0,0,0],rot=[0,0,0])
 	mount_bolt_cap_height=0.5;
 	mount_bolt_cap_dia=1.9;
 	mount_columns_diaxtra=0.25;
-	mount_columns_height=4.2;
+	mount_columns_front_height=2;
+	mount_columns_back_height=4.2;
+
+	cable_cutoff_dim=[3.5,front_back_thickness+xtra,1.5+xtra]; //width//length /height
+
+
 
 	module _body_box()
 	{
@@ -700,6 +784,9 @@ module servo_back_mod(pos=[0,0,0],rot=[0,0,0])
 			translate([-inner_width/2,lng_off/2,-xtra])cube([inner_width,inner_length,inner_height+xtra]);
 		}
 	}	
+
+	module _block()
+	{
 
 	translate(pos) rotate(rot) 
 	{
@@ -715,8 +802,11 @@ module servo_back_mod(pos=[0,0,0],rot=[0,0,0])
 				translate([0,width/2,height]) cylinder(r=axis_dia/2,h=7);
 				render()
 				{
-				for (i =[-1 , 1]) for (j = [-1 , 1] )
-				translate([bolts_x_pos*i,bolts_y_pos*j+length/2,height-mount_columns_height]) cylinder(r=bolts_dia/2+mount_columns_diaxtra,h=mount_columns_height);
+				for (i =[-1 , 1]) 
+				translate([bolts_x_pos*i,bolts_y_pos+length/2,height-mount_columns_front_height]) cylinder(r=bolts_dia/2+mount_columns_diaxtra,h=mount_columns_front_height);
+
+				for (i =[-1 , 1]) 
+				translate([bolts_x_pos*i,-bolts_y_pos+length/2,height-mount_columns_back_height]) cylinder(r=bolts_dia/2+mount_columns_diaxtra,h=mount_columns_back_height);
 				}
 			}
 			render()
@@ -727,11 +817,28 @@ module servo_back_mod(pos=[0,0,0],rot=[0,0,0])
 			for (i =[-1 , 1]) for (j = [-1 , 1] )
 			translate([bolts_x_pos*i,bolts_y_pos*j+length/2,height-mount_bolt_cap_height]) cylinder(r=mount_bolt_cap_dia/2,h=mount_bolt_cap_height, $fn=16);
 			
-			translate([0,width/2,height-2]) cylinder(r=width/2-0.8,h=4);
+			translate([0,width/2,height-2]) cylinder(r=width/2-side_thickness,h=4);
 			//translate([0,width/2,0]) cylinder(r=axis_dia/2,h=4+height+xtra);
 			}
+
+			//cable cut off
+			translate([-cable_cutoff_dim[0]/2,-xtra,-xtra]) cube(cable_cutoff_dim);
 		}
 	}	
+	}
+
+	difference()
+	{
+		_block();
+		if(part ==BODY)
+		{
+			translate([-width/2,0,height-top_thickess-0.0001])  cube([width,length,height+20]);
+		}
+		else if (part == TOP)
+		{
+			translate([-width/2,0,-top_thickess])  cube([width,length,height]);
+		}
+	}
 
 }
 

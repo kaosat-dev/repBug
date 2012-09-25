@@ -4,9 +4,9 @@ import time
 speed = 200
 cmd_delay = 0.75;
 
-ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+ser = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
 
-for i in range(5):
+for i in range(15):
     """Left"""
     ser.write("9 45 %d\n" % speed) 
     ser.write("10 30 %d\n" % speed) 

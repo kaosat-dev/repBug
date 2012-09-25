@@ -26,3 +26,8 @@ ELEC_COLOR =[ 0.5, 0.5, 0.6];
 //render settings
 VANITY = "vanity";
 INDUSTRIAL = "industrial";
+
+//parts definitions
+
+BODY="BODY";
+TOP="TOP";
