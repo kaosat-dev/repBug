@@ -21,7 +21,7 @@ githubiverse:
 
     ## The names of directories where any images, source and stl files associated with the project can be found.
     img_dir: cad/img
-    stl_dir: cad
+    stl_dir: cad/stl
     src_dir: cad
 
     ## The headline image
