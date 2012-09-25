@@ -21,7 +21,7 @@ render_mode = VANITY;
 // Example usage
 ////////////////////////////////
 //repBug();
-//leg();
+//eg();
 //mirror([1,0,0]) coxa();
 //rotate([0,180,0]) femur();
 //mirror([1,0,0]) tibia2([0,0,0],[-90,0,0]);
@@ -31,7 +31,6 @@ render_mode = VANITY;
 //mount_hole_test();
 
 //leg_movement_protoyper();
-//%servo_back_mod(part=TOP);
 //rotate([0,180,0]) servo_back_mod();
 servo_back_mod(part=TOP);
 ///////////////////////////////
@@ -469,6 +468,7 @@ module body(pos=[0,0,0],width=80, length=100 , leg_angles=40, legs_dist=50,)
 			translate([-width/2,0])  cylinder(r=servo_mount_dia/2,h=thickness+xtra+10, center=true); 
 
 
+//%servo_back_mod(part=TOP);
 			translate([0,60])  cylinder(r=servo_mount_dia/2,h=thickness+xtra+10, center=true); 
 			
 			//cut
@@ -747,13 +747,16 @@ module servo_back_mod(pos=[0,0,0],rot=[0,0,0], part=BODY)
 {
 	width=12.35;
 	length=23;
-	height=5.5;
+	height=5.6;
 	
-	bolts_dia=0.9;
-	axis_dia=4;
+	bolts_x_dist=9;
+	bolts_y_dist=20;
+	bolts_dia=1.2;//is actually 0.9 , but here we compensate for shrinkage
+	axis_dia=4.6;
 
-	side_thickness=1;
-	front_back_thickness=0.85;
+
+	side_thickness=1.2;
+	front_back_thickness=1;
 
 	inner_width=width-2*side_thickness;
 	inner_length=length-2*front_back_thickness;
@@ -761,18 +764,17 @@ module servo_back_mod(pos=[0,0,0],rot=[0,0,0], part=BODY)
 	top_thickess= height - inner_height;
 
 	
-	bolts_x_pos=inner_width/2-bolts_dia/4;
-	bolts_y_pos=inner_length/2-bolts_dia/4;
-
 	lng_off=length-inner_length;
 
 	mount_bolt_cap_height=0.5;
 	mount_bolt_cap_dia=1.9;
-	mount_columns_diaxtra=0.25;
-	mount_columns_front_height=2;
+	mount_columns_diaxtra=0.5;
+	mount_columns_front_height=2.2;
 	mount_columns_back_height=4.2;
 
-	cable_cutoff_dim=[3.5,front_back_thickness+xtra,1.5+xtra]; //width//length /height
+	cable_cutoff_dim=[4.5,front_back_thickness+xtra*2,1.5+xtra]; //width//length /height
+
+	
 
 
 
@@ -803,19 +805,19 @@ module servo_back_mod(pos=[0,0,0],rot=[0,0,0], part=BODY)
 				render()
 				{
 				for (i =[-1 , 1]) 
-				translate([bolts_x_pos*i,bolts_y_pos+length/2,height-mount_columns_front_height]) cylinder(r=bolts_dia/2+mount_columns_diaxtra,h=mount_columns_front_height);
+				translate([(bolts_x_dist/2)*i,bolts_y_dist/2+length/2,height-mount_columns_front_height]) cylinder(r=bolts_dia/2+mount_columns_diaxtra,h=mount_columns_front_height);
 
 				for (i =[-1 , 1]) 
-				translate([bolts_x_pos*i,-bolts_y_pos+length/2,height-mount_columns_back_height]) cylinder(r=bolts_dia/2+mount_columns_diaxtra,h=mount_columns_back_height);
+				translate([(bolts_x_dist/2)*i,-bolts_y_dist/2+length/2,height-mount_columns_back_height]) cylinder(r=bolts_dia/2+mount_columns_diaxtra,h=mount_columns_back_height);
 				}
 			}
 			render()
 			{
 			for (i =[-1 , 1]) for (j = [-1 , 1] )
-			translate([bolts_x_pos*i,bolts_y_pos*j+length/2,0]) cylinder(r=bolts_dia/2,h=height+xtra, $fn=16);
+			translate([(bolts_x_dist/2)*i,(bolts_y_dist/2)*j+length/2,0]) cylinder(r=bolts_dia/2,h=height+xtra+20, $fn=7);
 
 			for (i =[-1 , 1]) for (j = [-1 , 1] )
-			translate([bolts_x_pos*i,bolts_y_pos*j+length/2,height-mount_bolt_cap_height]) cylinder(r=mount_bolt_cap_dia/2,h=mount_bolt_cap_height, $fn=16);
+			translate([(bolts_x_dist/2)*i,(bolts_y_dist/2)*j+length/2,height-mount_bolt_cap_height]) cylinder(r=mount_bolt_cap_dia/2,h=mount_bolt_cap_height+20, $fn=16);
 			
 			translate([0,width/2,height-2]) cylinder(r=width/2-side_thickness,h=4);
 			//translate([0,width/2,0]) cylinder(r=axis_dia/2,h=4+height+xtra);
@@ -836,7 +838,7 @@ module servo_back_mod(pos=[0,0,0],rot=[0,0,0], part=BODY)
 		}
 		else if (part == TOP)
 		{
-			translate([-width/2,0,-top_thickess])  cube([width,length,height]);
+			translate([-width/2-xtra/2,-xtra/2,-top_thickess])  cube([width+xtra,length+xtra,height]);
 		}
 	}
 
