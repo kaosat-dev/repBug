@@ -1,10 +1,6 @@
 RepBug , a 3d printable , mini hexapod !
 ========================================
 
-Overall design (far from final)
-![alt text](https://github.com/kaosat-dev/repBug/raw/master/cad/img/repBug_0.1.jpg)
-
-
 **Some features:**
 
 - open source design & code
@@ -34,8 +30,10 @@ What you fill find in this repository:
 	the python "host" program / mini server (more on this later)
 	the arduino/c++ firmware (and various experiments) 
  
-
-
 License:
 ========
 GPLV3
+
+Overview
+========
+Go to http://kaosat-dev.github.com/repBug/ for a more "visual" overview of this project
