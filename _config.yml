@@ -1,0 +1,39 @@
+## githubiverse-template by Gary Hodgson
+## license: GPL3
+##
+## The data below is left as an example.  Please change each entry to match your requirements. 
+## 
+
+## Uses distinct namespace. Jekyll settings should go at the root level.
+githubiverse:
+    ## Metadata
+    title: "RepBug"
+    author: Mark Moissette
+    license: GPL3
+    tags: [hexapod, fun]
+
+    ## Github project parameters.
+    github:
+        base: https://github.com/
+        user: kaosat-dev
+        repository: repBug
+        branch: master
+
+    ## The names of directories where any images, source and stl files associated with the project can be found.
+    img_dir: cad/img
+    stl_dir: cad
+    src_dir: cad
+
+    ## The headline image
+    lead_image: repBug_0.1.jpg
+    show_lead_image: true
+
+    ## Optional. When uncommented appends the content of the file defined here to the project description.  Any text in index.md, after the yaml header, will be shown first.
+    ## WARNING: since the github outage on 12th Sep. this feature does not currently work.
+    description_file: README.md
+
+    ## Preview the first STL in the list when the page loads.
+    autoload_stl: true
+
+    ## Show a github "fork me" ribbon in the top righthand corner of the page.
+    show_forkme_ribbon: true
